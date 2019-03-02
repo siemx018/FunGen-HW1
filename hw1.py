@@ -1,4 +1,5 @@
 import sys
+import matplotlib.pyplot as plot
 import os
 import numpy as np
 import scipy.stats
@@ -7,7 +8,6 @@ import scipy.stats
 file = sys.argv[1]
 text =  open(file).read().split('\n')
 matrix = [i.split("\t") for i in text]
-
 
 ###########################################
 ##Part 2
@@ -35,6 +35,7 @@ def part2():
             genes.add(words[1])
     print("Number of unique Genes:", len(genes))
 
+part2()
 ###########################################
 ##Part 3
 ###########################################
@@ -58,42 +59,33 @@ def part3():
 ###########################################
 
 def part4():
-    #### This might be a helpful function to get the first n biggest numbers
-    #### For this question we need to look at the 10 most differential probes
-    def getNbig(arr, n):
-        final_list = []
-        for i in range(0, n):
-            mx = 0
-            for j in arr:
-                if j > mx:
-                    mx = j
 
-            list1.remove(mx)
-            final_list.append(mx)
-
-        return final_list
-
+    ##This is for the ttest and maybe works
     dflst = []
-    ## For each probe
-    for probe in range(len(matrix[2::])):
+    ## For each probe we find the t-value
+    for probe in range(2,len(matrix)-1):
         laps = []
         unlps = []
         ## Get the expression level for non-lapsed and relapsed samples.
-        for g in range(len(matrix[probe][2::])):
-            if(matrix[1][g] == 1):
-                laps += [g]
+        for g in range(2,len(matrix[probe])):
+            if(int(matrix[1][g]) == 1):
+                laps.append(float(matrix[probe][g]))
             else:
-                unlps += [g]
-        ## scipy has a built in wilcoxon test if we don't want to implement it
-        ##But I am confused here because this method wants to equal sized data sets
-        ## Which we don't have. The wiki page of the test also assumes to equal sized
-        ##Data sets.
+                unlps.append(float(matrix[probe][g]))
+        results = scipy.stats.ttest_ind(laps, unlps, equal_var = False)[1]
+        dflst += [(results, probe)]
 
-        #score, p  = scipy.stats.wilcoxon(laps, unlps)
-        #dflst += [score]
-        ## This is so the comments collapse with the function 
+    dflst.sort(reverse=True, key = lambda x : x[0])
+    for probe in dflst[:10]:
+        print(matrix[probe[1]][1])
+
+    dflst = [-np.log10(i[0]) for i in dflst]
+    plot.hist(dflst)
+    plot.show()
+        ## This is so the comments collapse with the function
+        ## It's meaningless
     a = 5
-
+part4()
 
 ###########################################
 ##Part 5
