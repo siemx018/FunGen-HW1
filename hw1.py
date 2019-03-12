@@ -15,7 +15,7 @@ SHOW_GRAPHS = False
 def part2():
     print("Number of probes: ", len(text)-3)
     vals = [0,0]
-    line1 = text[1].split('\t')
+    line1 = matrix[1]
     for i in line1:
         if(i == "0"):
             vals[0] +=1
@@ -26,12 +26,9 @@ def part2():
 
 
     genes = set()
-
-
-    for line in text[2::]:
-        words = line.split("\t")
-        if(len(words)> 1):
-            genes.add(words[1])
+    for row in matrix[2::]:
+        if(len(row) > 1):
+            genes.add(row[1])
     print("Number of unique Genes:", len(genes))
 
 part2()
@@ -94,63 +91,82 @@ def part4():
     ##This is for the ttest
     dflst = []
     willist = []
+    setd = set()
+    setw = set()
     ## For each probe we find the t-value
 
     ##One of these is probably wrong
     for probe in range(2,len(matrix)-1):
-        laps = []
-        unlps = []
+        s1 = []
+        s2 = []
+
+        dcount = 0
+        wcount = 0
         ## Get the expression level for non-lapsed and relapsed samples.
         for g in range(2,len(matrix[probe])):
             if(int(matrix[1][g]) == 1):
-                laps.append(float(matrix[probe][g]))
+                s1.append(float(matrix[probe][g]))
             else:
-                unlps.append(float(matrix[probe][g]))
-        results = scipy.stats.ttest_ind(laps, unlps, equal_var = False)[1]
+                s2.append(float(matrix[probe][g]))
+        results = scipy.stats.ttest_ind(s1, s2)[1]
         dflst += [(results, probe)]
+        if(results < 0.05):
+            setd.add(matrix[probe][1])
+        results = scipy.stats.mannwhitneyu(s1, s2)[1]
+        willist += [(results, probe)]
+        if(results < 0.05):
+            setw.add(matrix[probe][1])
+    ##End Loop
 
-        (s,p) = scipy.stats.wilcoxon(laps, unlps[:len(laps)])
-        willist += [(p, probe)]
-
-    willist.sort(reverse=True, key = lambda x : x[0])
-    dflst.sort(reverse=True, key = lambda x : x[0])
+    willist.sort( key = lambda x : x[0])
+    dflst.sort( key = lambda x : x[0])
     for probe in dflst[:10]:
+        print(probe[0], end=" ")
         print(matrix[probe[1]][1])
     print("\n \n")
-    for probe in willist[:10]:
+    for probe in willist[1:10]:
+        print(probe[0], end=" ")
         print(matrix[probe[1]][1])
-    dflst = [-np.log10(i[0]) for i in dflst]
-    plot.hist(dflst)
+
+    print("# of Signifigant from ttest:", len(setd))
+    print("# of Signifigant from rank-sum:", len(setw))
+    print("Size of Set difference", len(setd.difference(setw)))
+
+    wilog = [-np.log10(i[0]) for i in dflst if i[0] > 0]
+    dflst = [-np.log10(i[0]) for i in dflst if i[0] > 0]
     if(SHOW_GRAPHS):
+        plot.hist(dflst)
         plot.show()
         ## This is so the comments collapse with the function
         ## It's meaningless
-    a = 5
+    return willist
 
-part4()
+ranked = part4()
 
 ###########################################
 ##Part 5
 ###########################################
 
 
-def part5():
+def part5(willist):
 
     ##Part A
     filterd = []
-    for (p, probe) in willist:
+    for ele in willist:
+        p, probe = ele[0], ele[1]
         corrected = p*(len(willist))
         if(corrected < 0.05):
             filterd.append((p,probe))
     print(len(filterd))
 
-    ##Part B
+    #Part B
     FDR = 0.05
     M = len(willist)
     ffilter = 0
     for i in range(M):
         rank = i
         score = (rank/M)*FDR
-        if(score < willist):
+        if( willist[i][0] < score):
             ffilter += 1
     print(ffilter)
+part5(ranked)
