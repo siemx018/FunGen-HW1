@@ -37,6 +37,7 @@ part2()
 ###########################################
 
 def part3():
+    global matrix
 
     ##Part A
     buckets = []
@@ -45,12 +46,12 @@ def part3():
             buckets.append(float(val))
 
 
-    plot.hist(buckets, 100)
     if(SHOW_GRAPHS):
+        plot.hist(buckets, 100)
         plot.show()
     luckets = [np.log10(i) for i in buckets]
-    plot.hist(luckets, 100)
     if(SHOW_GRAPHS):
+        plot.hist(luckets, 100)
         plot.show()
 
 
@@ -66,20 +67,9 @@ def part3():
              plot.show()
 
     ## Part C
-    means = []
-    for line in matrix[2::]:
-        vals = [float(i) for i in line[2:]]
-        sum = 0
-        for i in vals: sum += i
-        if(len(line[2:])> 0):
-            mean = sum/len(line[2:])
-            means.append(mean)
-    means.sort()
-
-    trans = scipy.mat(matrix[2::][2::]).T
 
 
-
+part3()
 
 ###########################################
 ##Part 4
@@ -100,19 +90,22 @@ def part4():
         s1 = []
         s2 = []
 
-        dcount = 0
-        wcount = 0
+
         ## Get the expression level for non-lapsed and relapsed samples.
         for g in range(2,len(matrix[probe])):
             if(int(matrix[1][g]) == 1):
-                s1.append(float(matrix[probe][g]))
+                val = np.log10(float(matrix[probe][g]))
+                s1.append(val)
             else:
-                s2.append(float(matrix[probe][g]))
+                val = np.log10(float(matrix[probe][g]))
+                s2.append(val)
         results = scipy.stats.ttest_ind(s1, s2)[1]
         dflst += [(results, probe)]
         if(results < 0.05):
             setd.add(matrix[probe][1])
-        results = scipy.stats.mannwhitneyu(s1, s2)[1]
+        ##Should I use this or ranksum
+        ##results = scipy.stats.mannwhitneyu(s1, s2)[1]
+        results = scipy.stats.ranksums(s1, s2)[1]
         willist += [(results, probe)]
         if(results < 0.05):
             setw.add(matrix[probe][1])
@@ -124,7 +117,7 @@ def part4():
         print(probe[0], end=" ")
         print(matrix[probe[1]][1])
     print("\n \n")
-    for probe in willist[1:10]:
+    for probe in willist[0:10]:
         print(probe[0], end=" ")
         print(matrix[probe[1]][1])
 
@@ -169,4 +162,14 @@ def part5(willist):
         if( willist[i][0] < score):
             ffilter += 1
     print(ffilter)
+
+    axis = [i for i in range(500)]
+    data1 = []
+    for ele in willist[:500]:
+        p, probe = ele[0], ele[1]
+        data1.append(p)
+    data2 = [(i/M)*FDR for i in range(500)]
+    plot.plot( data1)
+    plot.show()
+
 part5(ranked)
