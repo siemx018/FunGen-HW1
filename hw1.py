@@ -66,8 +66,44 @@ def part3():
          if(SHOW_GRAPHS):
              plot.show()
 
-    ## Part C
-
+    # Part C This is wrong. But maybe it is almost right
+    ## Get the mean of each probe
+    # means = []
+    # for row in matrix[2:]:
+    #     total = 0
+    #     count = 0
+    #     for ele in row[2:]:
+    #         val = np.log10(float(ele))
+    #         total += val
+    #         count += 1
+    #     if( count > 0):
+    #         means.append( (total/count))
+    #     else:
+    #         means.append(0)
+    # means.sort()
+    #
+    # # For each column in the array
+    # for c in range(2,len(matrix[0])):
+    #     col = []
+    # # Add every value in the column to our list, keeping track of the orignal index
+    #     for i in range(2,len(matrix)-1):
+    #         col.append([matrix[i][c], i])
+    # # Sort by the values to get the rank by ranks and reassign the values to be the means
+    #     col.sort( key = lambda x : x[0])
+    #     for i in range(len(col)):
+    #         col[i][0] = means[i]
+    # #  Resort by the orignal index and reassign these values to the matrices
+    #     col.sort(key = lambda x : x[1])
+    #     for i in range(2,len(matrix)-1):
+    #         matrix[i][c] = col[i-2][0]
+    #
+    # buckets = [ [], [], [], []]
+    # for i in range(2, len(matrix)-1):
+    #     for j in range(2, 6):
+    #         buckets[j-2].append(matrix[i][j])
+    # for i in range(4):
+    #     plot.hist(buckets[i], 100)
+    #     plot.show()
 
 part3()
 
@@ -94,10 +130,10 @@ def part4():
         ## Get the expression level for non-lapsed and relapsed samples.
         for g in range(2,len(matrix[probe])):
             if(int(matrix[1][g]) == 1):
-                val = np.log10(float(matrix[probe][g]))
+                val = float(matrix[probe][g])
                 s1.append(val)
             else:
-                val = np.log10(float(matrix[probe][g]))
+                val = float(matrix[probe][g])
                 s2.append(val)
         results = scipy.stats.ttest_ind(s1, s2)[1]
         dflst += [(results, probe)]
